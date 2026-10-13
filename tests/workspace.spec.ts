@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page, type Locator } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import AxeBuilder from '@axe-core/playwright';
 import type { Session, Task, Project } from '@rafnexa/shared';
@@ -20,6 +20,41 @@ async function session(page: Page) {
   return result.json() as Promise<Session>;
 }
 const origin = 'http://127.0.0.1:4173';
+async function activate(locator: Locator) {
+  if (test.info().project.name === 'mobile-chromium') await locator.tap();
+  else await locator.click();
+}
+test.afterEach(async ({ page }, info) => {
+  if (info.status === info.expectedStatus) return;
+  const layout = await page.evaluate(() => {
+    const target =
+      document.querySelector('dialog button[type="submit"]') ||
+      document.querySelector('[aria-label="Next page"]');
+    const rect = target?.getBoundingClientRect();
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
+      documentWidth: document.documentElement.scrollWidth,
+      viewport: window.visualViewport
+        ? {
+            width: window.visualViewport.width,
+            height: window.visualViewport.height,
+            offsetLeft: window.visualViewport.offsetLeft,
+            offsetTop: window.visualViewport.offsetTop,
+            scale: window.visualViewport.scale,
+          }
+        : null,
+      target: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null,
+      hit: rect
+        ? document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)?.tagName
+        : null,
+    };
+  });
+  console.log(JSON.stringify({ layout }));
+});
+
 test('loads a real demo, exposes metrics and adapts to the viewport', async ({ page }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -59,7 +94,7 @@ test('filters, creates and persists projects with an accessible dialog', async (
   await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByRole('textbox', { name: 'Project name' }).fill('Interview delivery');
   await page.getByRole('combobox', { name: 'Project status' }).selectOption('active');
-  await page.getByRole('button', { name: 'Create project', exact: true }).click();
+  await activate(page.getByRole('button', { name: 'Create project', exact: true }));
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Open Interview delivery' })).toBeVisible();
   await page.reload();
@@ -114,9 +149,9 @@ test('checks pagination and project details against persisted data', async ({ pa
   }
   await navigate(page, 'Projects');
   await expect(page.getByText('Page 1 of 2')).toBeVisible();
-  await page.getByRole('button', { name: 'Next page' }).click();
+  await activate(page.getByRole('button', { name: 'Next page' }));
   await expect(page.getByText('Page 2 of 2')).toBeVisible();
-  await page.getByRole('button', { name: 'Previous page' }).click();
+  await activate(page.getByRole('button', { name: 'Previous page' }));
   await page.getByRole('link', { name: 'Open Pagination project 0' }).click();
   await expect(page.getByRole('heading', { name: 'Pagination project 0.' })).toBeVisible();
   await expect(page.getByText('Turn plans into steps')).toBeVisible();
