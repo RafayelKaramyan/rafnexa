@@ -68,6 +68,7 @@
     color: #202737;
     background: #f5f6fa;
     font-synthesis: none;
+    color-scheme: light;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     --blue: #4b60d6;
@@ -2748,6 +2749,23 @@
     }
     .invite-actions {
       flex-direction: column;
+    }
+  }
+  @media (max-width: 780px) {
+    .field input,
+    .field select,
+    .field textarea,
+    .search-input input,
+    .toolbar-right select,
+    .board-project select,
+    .task-card-footer select,
+    .team-table select,
+    .workspace-switch select {
+      font-size: 16px;
+    }
+    .pagination .button {
+      min-height: 44px;
+      min-width: 44px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
