@@ -21,8 +21,31 @@ async function session(page: Page) {
 }
 const origin = 'http://127.0.0.1:4173';
 async function activate(locator: Locator) {
-  if (test.info().project.name === 'mobile-chromium') await locator.tap();
-  else await locator.click();
+  if (test.info().project.name !== 'mobile-chromium') {
+    await locator.click();
+    return;
+  }
+  await expect(locator).toBeVisible();
+  await expect(locator).toBeEnabled();
+  await locator.scrollIntoViewIfNeeded();
+  const page = locator.page();
+  const box = await locator.boundingBox();
+  if (!box) throw new Error('The touch target has no visible bounds.');
+  const viewport = await page.evaluate(() => ({
+    left: window.visualViewport?.offsetLeft ?? 0,
+    top: window.visualViewport?.offsetTop ?? 0,
+  }));
+  const unobscured = await locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    return hit === element || (hit !== null && element.contains(hit));
+  });
+  if (!unobscured) throw new Error('The touch target is obscured.');
+  // Mobile CDP input uses visual viewport coordinates after a viewport pan.
+  await page.touchscreen.tap(
+    box.x + box.width / 2 - viewport.left,
+    box.y + box.height / 2 - viewport.top,
+  );
 }
 test.afterEach(async ({ page }, info) => {
   if (info.status === info.expectedStatus) return;
