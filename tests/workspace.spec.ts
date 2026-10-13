@@ -5,14 +5,14 @@ import type { Session, Task, Project } from '@rafnexa/shared';
 
 async function demo(page: Page) {
   await page.goto('/login');
-  await page.getByRole('button', { name: 'Enter demo workspace' }).click();
+  await activate(page.getByRole('button', { name: 'Enter demo workspace' }));
   await expect(page.getByRole('heading', { name: 'A clear view, Demo.' })).toBeVisible();
   await expect(page.getByRole('table')).toBeVisible();
 }
 async function navigate(page: Page, name: string) {
   const toggle = page.getByRole('button', { name: 'Open navigation', exact: true });
-  if (await toggle.isVisible()) await toggle.click();
-  await page.getByRole('link', { name, exact: true }).click();
+  if (await toggle.isVisible()) await activate(toggle);
+  await activate(page.getByRole('link', { name, exact: true }));
 }
 async function session(page: Page) {
   const result = await page.request.get('/api/auth/session');
@@ -28,24 +28,20 @@ async function activate(locator: Locator) {
   await expect(locator).toBeVisible();
   await expect(locator).toBeEnabled();
   await locator.scrollIntoViewIfNeeded();
-  const page = locator.page();
-  const box = await locator.boundingBox();
-  if (!box) throw new Error('The touch target has no visible bounds.');
-  const viewport = await page.evaluate(() => ({
-    left: window.visualViewport?.offsetLeft ?? 0,
-    top: window.visualViewport?.offsetTop ?? 0,
-  }));
-  const unobscured = await locator.evaluate((element) => {
+  const point = await locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
-    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
-    return hit === element || (hit !== null && element.contains(hit));
+    const x = rect.x + rect.width / 2;
+    const y = rect.y + rect.height / 2;
+    const hit = document.elementFromPoint(x, y);
+    return {
+      x: x - (window.visualViewport?.offsetLeft ?? 0),
+      y: y - (window.visualViewport?.offsetTop ?? 0),
+      unobscured: hit === element || (hit !== null && element.contains(hit)),
+    };
   });
-  if (!unobscured) throw new Error('The touch target is obscured.');
-  // Mobile CDP input uses visual viewport coordinates after a viewport pan.
-  await page.touchscreen.tap(
-    box.x + box.width / 2 - viewport.left,
-    box.y + box.height / 2 - viewport.top,
-  );
+  if (!point.unobscured) throw new Error('The touch target is obscured.');
+  // Convert DOM layout coordinates into the visual coordinates used by mobile CDP input.
+  await locator.page().touchscreen.tap(point.x, point.y);
 }
 test.afterEach(async ({ page }, info) => {
   if (info.status === info.expectedStatus) return;
@@ -89,7 +85,7 @@ test('loads a real demo, exposes metrics and adapts to the viewport', async ({ p
   );
   expect(errors).toEqual([]);
   if (info.project.name === 'mobile-chromium') {
-    await page.getByRole('button', { name: 'Open navigation' }).click();
+    await activate(page.getByRole('button', { name: 'Open navigation' }));
     await expect(page.getByRole('dialog', { name: 'Workspace navigation' })).toBeVisible();
     await page.getByRole('link', { name: 'Rafnexa overview' }).focus();
     await page.keyboard.press('Shift+Tab');
@@ -109,12 +105,12 @@ test('filters, creates and persists projects with an accessible dialog', async (
   await expect(page.getByRole('link', { name: 'Open Customer portal' })).toHaveCount(0);
   await page.getByRole('combobox', { name: 'Filter by status' }).selectOption('completed');
   await expect(page.getByText('No projects match')).toBeVisible();
-  await page.getByRole('button', { name: 'Clear filters' }).click();
-  await page.getByRole('button', { name: 'New project', exact: true }).click();
+  await activate(page.getByRole('button', { name: 'Clear filters' }));
+  await activate(page.getByRole('button', { name: 'New project', exact: true }));
   await expect(page.getByRole('textbox', { name: 'Project name' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'New project', exact: true })).toBeFocused();
-  await page.getByRole('button', { name: 'New project', exact: true }).click();
+  await activate(page.getByRole('button', { name: 'New project', exact: true }));
   await page.getByRole('textbox', { name: 'Project name' }).fill('Interview delivery');
   await page.getByRole('combobox', { name: 'Project status' }).selectOption('active');
   await activate(page.getByRole('button', { name: 'Create project', exact: true }));
@@ -126,9 +122,9 @@ test('filters, creates and persists projects with an accessible dialog', async (
 test('moves tasks, persists changes and recovers from a stale edit', async ({ page }, info) => {
   await demo(page);
   await navigate(page, 'Task board');
-  await page.getByRole('button', { name: 'New task', exact: true }).click();
+  await activate(page.getByRole('button', { name: 'New task', exact: true }));
   await page.getByRole('textbox', { name: 'Task title' }).fill('Ship verified workflow');
-  await page.getByRole('button', { name: 'Create task', exact: true }).click();
+  await activate(page.getByRole('button', { name: 'Create task', exact: true }));
   await expect(page.getByRole('dialog')).toHaveCount(0);
   const control = page.getByRole('combobox', { name: 'Move Ship verified workflow', exact: true });
   await control.selectOption('in_progress');
@@ -175,7 +171,7 @@ test('checks pagination and project details against persisted data', async ({ pa
   await activate(page.getByRole('button', { name: 'Next page' }));
   await expect(page.getByText('Page 2 of 2')).toBeVisible();
   await activate(page.getByRole('button', { name: 'Previous page' }));
-  await page.getByRole('link', { name: 'Open Pagination project 0' }).click();
+  await activate(page.getByRole('link', { name: 'Open Pagination project 0' }));
   await expect(page.getByRole('heading', { name: 'Pagination project 0.' })).toBeVisible();
   await expect(page.getByText('Turn plans into steps')).toBeVisible();
 });
