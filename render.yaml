@@ -3,7 +3,7 @@ services:
     name: rafnexa
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: node apps/api/dist/migrate.js && npm start
     healthCheckPath: /api/health
     autoDeployTrigger: checksPass
