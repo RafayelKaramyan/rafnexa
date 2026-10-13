@@ -15,13 +15,11 @@ afterEach(() => {
 it('updates the active session observer while removing previous workspace data', async () => {
   vi.stubGlobal(
     'fetch',
-    vi
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ error: { code: 'SESSION_EXPIRED', message: 'Sign in.' } }), {
-          status: 401,
-        }),
-      ),
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: 'SESSION_EXPIRED', message: 'Sign in.' } }), {
+        status: 401,
+      }),
+    ),
   );
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   client.setQueryData(['previous-workspace', 'projects'], [{ name: 'Previous private data' }]);

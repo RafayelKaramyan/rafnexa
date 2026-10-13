@@ -10,7 +10,7 @@ export type TaskStatus = z.infer<typeof taskStatusSchema>;
 export type Priority = z.infer<typeof prioritySchema>;
 const name = z.string().trim().min(2).max(80);
 const id = z.uuid();
-const email = z.email().trim().toLowerCase().max(254);
+const email = z.string().trim().toLowerCase().max(254).pipe(z.email());
 const date = z.iso.date();
 const password = z.string().min(12).max(128);
 const token = z.string().regex(/^[a-f0-9]{64}$/);
@@ -24,7 +24,7 @@ export const registerSchema = z
     invitationToken: token.optional(),
   })
   .strict()
-  .refine((value) => Boolean(value.workspaceName || value.invitationToken), {
+  .refine((value) => Boolean(value.workspaceName) !== Boolean(value.invitationToken), {
     message: 'Provide a workspace name or an invitation.',
     path: ['workspaceName'],
   });

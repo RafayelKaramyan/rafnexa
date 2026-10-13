@@ -55,6 +55,7 @@ export function Layout() {
     document.body.style.overflow = 'hidden';
     const panel = sidebar.current;
     const main = mainShell.current;
+    const toggleButton = toggle.current;
     if (main) main.inert = true;
     panel?.querySelector<HTMLElement>('.mobile-close')?.focus();
     const close = (event: KeyboardEvent) => {
@@ -82,7 +83,7 @@ export function Layout() {
     return () => {
       document.body.style.overflow = original;
       if (main) main.inert = false;
-      toggle.current?.focus();
+      toggleButton?.focus();
       window.removeEventListener('keydown', close);
     };
   }, [mobileOpen, isMobile]);

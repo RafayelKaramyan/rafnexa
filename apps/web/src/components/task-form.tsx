@@ -7,6 +7,7 @@ import {
   taskStatusLabels,
   type Task,
   type TaskInput,
+  type TaskStatus,
 } from '@rafnexa/shared';
 import { Modal } from './modal';
 import { Button, ErrorNotice, Input, Select } from './ui';
@@ -17,10 +18,12 @@ import { useMembers, useInvalidateWorkspace } from '../lib/use-workspace-data';
 export function TaskForm({
   projectId,
   task,
+  initialStatus = 'todo',
   onClose,
 }: {
   projectId: string;
   task?: Task;
+  initialStatus?: TaskStatus;
   onClose: () => void;
 }) {
   const session = useSession();
@@ -30,7 +33,7 @@ export function TaskForm({
     projectId,
     title: task?.title ?? '',
     assigneeId: task?.assigneeId ?? null,
-    status: task?.status ?? 'todo',
+    status: task?.status ?? initialStatus,
     priority: task?.priority ?? 'medium',
     dueDate: task?.dueDate ?? null,
   });

@@ -25,6 +25,7 @@ export default function Board() {
   const [params, setParams] = useSearchParams();
   const projectId = params.get('project') ?? projects.data?.[0]?.id ?? '';
   const [editing, setEditing] = useState<Task | true | null>(null);
+  const [creatingStatus, setCreatingStatus] = useState<TaskStatus>('todo');
   const [archiving, setArchiving] = useState<Task | null>(null);
   const [dragged, setDragged] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<TaskStatus | null>(null);
@@ -81,7 +82,12 @@ export default function Board() {
         description="Small steps, shared context, visible progress."
         action={
           canManage(session.workspace.role) && projectId ? (
-            <Button onClick={() => setEditing(true)}>
+            <Button
+              onClick={() => {
+                setCreatingStatus('todo');
+                setEditing(true);
+              }}
+            >
               <Plus size={16} />
               New task
             </Button>
@@ -192,7 +198,10 @@ export default function Board() {
                     <button
                       className="icon-button"
                       aria-label={`Add task to ${taskStatusLabels[status]}`}
-                      onClick={() => setEditing(true)}
+                      onClick={() => {
+                        setCreatingStatus(status);
+                        setEditing(true);
+                      }}
                     >
                       <Plus size={15} />
                     </button>
@@ -298,6 +307,7 @@ export default function Board() {
       {editing ? (
         <TaskForm
           projectId={projectId}
+          initialStatus={creatingStatus}
           {...(editing === true ? {} : { task: editing })}
           onClose={() => setEditing(null)}
         />

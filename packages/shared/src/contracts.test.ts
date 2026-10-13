@@ -9,6 +9,18 @@ import {
 } from './index.js';
 
 describe('API contracts and permissions', () => {
+  it('normalizes email before validation and rejects ambiguous registration', () => {
+    const value = {
+      name: 'Test User',
+      email: ' USER@EXAMPLE.COM ',
+      password: 'a-long-test-password',
+      workspaceName: 'Studio',
+    };
+    expect(registerSchema.parse(value).email).toBe('user@example.com');
+    expect(registerSchema.safeParse({ ...value, invitationToken: 'a'.repeat(64) }).success).toBe(
+      false,
+    );
+  });
   it('rejects tenant IDs and unknown fields supplied by a client', () => {
     expect(
       projectInputSchema.safeParse({

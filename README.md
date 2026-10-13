@@ -37,8 +37,8 @@ apps/web              React routes, forms, queries and interface
 apps/api              HTTP handlers, authorization and SQL transactions
 apps/api/migrations   Versioned database schema
 packages/shared       Contracts, domain types and permission helpers
- tests                Browser checks against the built app and real API
- docs                 Architecture, API, deployment and validation
+tests                 Browser checks against the built app and real API
+docs                  Architecture, API, deployment and validation
 ```
 
 See [architecture](docs/architecture.md), [API](docs/api.md),

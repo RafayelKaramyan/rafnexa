@@ -30,6 +30,17 @@ test('loads a real demo, exposes metrics and adapts to the viewport', async ({ p
     true,
   );
   expect(errors).toEqual([]);
+  if (info.project.name === 'mobile-chromium') {
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    await expect(page.getByRole('dialog', { name: 'Workspace navigation' })).toBeVisible();
+    await page.getByRole('link', { name: 'Rafnexa overview' }).focus();
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.getByRole('button', { name: 'Sign out' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Rafnexa overview' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: 'Open navigation' })).toBeFocused();
+  }
   await page.screenshot({ path: info.outputPath('overview.png'), fullPage: true });
 });
 test('filters, creates and persists projects with an accessible dialog', async ({ page }) => {
