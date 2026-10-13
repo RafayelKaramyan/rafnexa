@@ -4,7 +4,7 @@ Run one Node service and an external MySQL database. `Dockerfile` provides a
 non-root runtime image; `render.yaml` describes a free service. Configuration files
 are not evidence of a successful live deployment.
 
-Build: `npm ci && npm run build`. Start:
+Build: `npm ci --include=dev && npm run build`. Start:
 `node apps/api/dist/migrate.js && npm start`. Use `/api/health` for readiness.
 Start from the repository root. The host supplies `PORT`; SIGTERM/SIGINT trigger
 shutdown with a ten-second deadline.

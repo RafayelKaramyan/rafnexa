@@ -5,9 +5,12 @@ and team ownership in a quiet, focused interface.
 
 ## Release status
 
-The working implementation is undergoing browser and CI verification on
-`feature/workspace-implementation`. A public deployment is not available yet.
-The verified release and live URL will be added after deployment.
+The working implementation is merged into `main`. Build, test-code type checking,
+lint, formatting, 17 unit/component tests, 17 MySQL integration tests and 18 browser
+scenarios passed in [GitHub Actions](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38474468301).
+
+Public hosting setup is pending. A live URL will be added only after deployment
+and verification.
 
 ## Implemented features
 

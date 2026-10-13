@@ -1,27 +1,36 @@
 # Validation record
 
-## Completed locally
+## Verified release code
 
-- Production build of shared, API and web packages.
-- 17 unit/component tests, including a regression for session observer updates
-  and removal of previous workspace data.
-- 17 API integration tests against disposable MariaDB 10.11.14, covering tenant
-  isolation, roles, CSRF, task conflicts, invitation replay and demo cleanup.
+Code commit: `d4b8f57ae6fb588d458612f3a096d2c150970514`.
 
-MariaDB checks are additional SQL compatibility evidence. Target MySQL 8.4 is
-configured independently in GitHub Actions.
+[Successful CI run](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38474468301):
 
-## In progress
+- Production build of the shared, API and web packages.
+- Strict type checking of application and test code.
+- ESLint with zero warnings and Prettier formatting checks.
+- 17 passing unit/component tests.
+- 17 passing API integration tests against MySQL 8.4.
+- 18 passing browser scenarios: six each in Chromium, Firefox and mobile Chromium.
+- Automated WCAG-tagged accessibility scans of overview and task board.
+- Reduced-motion behavior, native dialog focus, mobile navigation focus trapping,
+  project persistence, pagination, viewer restrictions and stale-task recovery.
 
-All six desktop Chromium scenarios passed locally, including the automated
-accessibility scans of overview and task board. Firefox could not create a local
-browser page in this execution environment; its verification is delegated to CI.
-Mobile Chromium and MySQL 8.4 CI results are pending.
+The browser tests run the built Node application with real API requests, cookies
+and SQL persistence. They do not mock the backend. Mobile touch input uses DOM
+bounds converted to visual viewport coordinates after a pan, retaining visibility,
+enabled-state and hit-target checks. There are no forced DOM clicks or test retries.
 
-Chromium, Firefox and mobile Chromium tests are authored against the built app,
-real API and SQL. Browser execution exposed dialog focus and foreground contrast
-issues; fixes are under verification. Authored coverage alone is not a passing result.
+Additional local evidence includes 17 SQL integration tests against MariaDB 10.11.14.
+Local Firefox could not create a page in the execution environment; CI independently
+verified Firefox.
 
-CI and live deployment results are pending. Docker image execution, physical
-mobile devices, native Safari, sustained load and production Core Web Vitals have
-not been verified. No benchmark numbers are claimed.
+## Remaining verification
+
+Public hosting and a live demo are pending. Docker image execution, physical
+mobile devices, native Safari, a complete manual accessibility audit, sustained
+load tests and production Core Web Vitals have not been verified. No performance
+benchmark figures are claimed.
+
+The development environment disconnected after the source was saved to GitHub.
+Release code and validation evidence remain available in the repository.
