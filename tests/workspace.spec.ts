@@ -198,7 +198,10 @@ test('supports reduced motion and semantic accessibility on core screens', async
   expect(
     overview.violations.map((violation) => ({
       id: violation.id,
-      targets: violation.nodes.map((node) => ({ target: node.target, summary: node.failureSummary })),
+      targets: violation.nodes.map((node) => ({
+        target: node.target,
+        summary: node.failureSummary,
+      })),
     })),
   ).toEqual([]);
   await navigate(page, 'Task board');
@@ -209,7 +212,10 @@ test('supports reduced motion and semantic accessibility on core screens', async
   expect(
     board.violations.map((violation) => ({
       id: violation.id,
-      targets: violation.nodes.map((node) => ({ target: node.target, summary: node.failureSummary })),
+      targets: violation.nodes.map((node) => ({
+        target: node.target,
+        summary: node.failureSummary,
+      })),
     })),
   ).toEqual([]);
 });
