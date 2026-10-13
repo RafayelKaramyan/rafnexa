@@ -198,17 +198,18 @@ test('supports reduced motion and semantic accessibility on core screens', async
   expect(
     overview.violations.map((violation) => ({
       id: violation.id,
-      targets: violation.nodes.map((node) => node.target),
+      targets: violation.nodes.map((node) => ({ target: node.target, summary: node.failureSummary })),
     })),
   ).toEqual([]);
   await navigate(page, 'Task board');
+  await expect(page.getByRole('region', { name: / task board$/ })).toBeVisible();
   const board = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
     .analyze();
   expect(
     board.violations.map((violation) => ({
       id: violation.id,
-      targets: violation.nodes.map((node) => node.target),
+      targets: violation.nodes.map((node) => ({ target: node.target, summary: node.failureSummary })),
     })),
   ).toEqual([]);
 });
