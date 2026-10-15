@@ -91,7 +91,16 @@ export function Layout() {
   }, [mobileOpen, isMobile]);
   return (
     <div className="app-shell">
-      <a href="#main-content" className="skip-link">
+      <a
+        href="#main-content"
+        className="skip-link"
+        onClick={(event) => {
+          if (isLocalDemo) {
+            event.preventDefault();
+            document.getElementById('main-content')?.focus();
+          }
+        }}
+      >
         Skip to content
       </a>
       <button
@@ -239,7 +248,7 @@ export function Layout() {
             )}
           </div>
         ) : null}
-        <main id="main-content" className="main-content">
+        <main id="main-content" className="main-content" tabIndex={-1}>
           {logout.isError ? <ErrorNotice error={logout.error} /> : null}
           {ownWorkspace.isError ? <ErrorNotice error={ownWorkspace.error} /> : null}
           {switcher.isError ? <ErrorNotice error={switcher.error} /> : null}

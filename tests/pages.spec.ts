@@ -31,6 +31,17 @@ async function navigate(page: Page, name: string) {
 async function open(page: Page) {
   await page.goto('./');
   await expect(page.getByRole('heading', { name: 'A clear view, Demo.' })).toBeVisible();
+  await expect(page.getByRole('table')).toBeVisible();
+}
+async function settleAnimations(page: Page) {
+  await page.evaluate(async () => {
+    await Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => undefined)),
+    );
+  });
 }
 test('opens directly without a backend and has accessible core screens', async ({ page }, info) => {
   const apiRequests: string[] = [],
@@ -45,6 +56,7 @@ test('opens directly without a backend and has accessible core screens', async (
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Sign out' })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await settleAnimations(page);
   expect(
     (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
       .violations,
@@ -52,6 +64,12 @@ test('opens directly without a backend and has accessible core screens', async (
   await page.screenshot({ path: info.outputPath('pages-overview.png'), fullPage: true });
   await navigate(page, 'Task board');
   await expect(page.getByRole('combobox', { name: 'Board project' })).toBeVisible();
+  const boardUrl = page.url();
+  await page.getByRole('link', { name: 'Skip to content', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('main')).toBeFocused();
+  expect(page.url()).toBe(boardUrl);
+  await settleAnimations(page);
   expect(
     (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
       .violations,
