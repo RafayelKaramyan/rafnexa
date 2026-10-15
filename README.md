@@ -3,14 +3,21 @@
 A project operations workspace by **Rafayel Karamyan**. Projects, clients, tasks
 and team ownership in a quiet, focused interface.
 
+**[Open the live demo →](https://rafayelkaramyan.github.io/rafnexa/)**
+
+Explore the dashboard, create a project and move tasks. No registration is
+required; your changes are saved in your browser.
+
 ## Release status
 
 An independent portfolio project by **Rafayel Karamyan**, created to demonstrate
 interface design and frontend/full-stack engineering. The public presentation
 uses GitHub Pages and opens directly into an editable workspace.
 
-Pages publication is in progress. The live URL will be recorded after a successful
-deployment and verification.
+Published on GitHub Pages and verified on 15 October 2026.
+[Passing CI](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38776194748)
+includes 23 unit/component tests, 17 MySQL integration tests, 18 server browser
+scenarios and 12 Pages browser scenarios. See the [validation record](docs/validation.md).
 
 ## Two ways to explore
 

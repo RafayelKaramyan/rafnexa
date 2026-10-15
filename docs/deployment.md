@@ -2,6 +2,9 @@
 
 ## Public portfolio demo: GitHub Pages
 
+**[Open Rafnexa](https://rafayelkaramyan.github.io/rafnexa/)** — deployed and
+verified on 15 October 2026.
+
 The public showcase is a static React application, built with `npm run build:pages`.
 It opens directly into the sample workspace and persists edits in browser storage.
 It does not need Render, a database account, secrets or an authentication provider.
@@ -18,7 +21,9 @@ reset confirmation and recovery from invalid saved data, without an API server.
 
 The local demo is a portfolio presentation. Online accounts, cross-device sharing,
 real invitations and server authorization belong to the separate server mode.
-The public live URL is recorded only after deployment verification.
+The [successful deployment](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38776593518)
+published the tested application. Live checks confirmed project creation and a
+task moved to Done persisted after a page reload.
 
 ## Optional server deployment
 
