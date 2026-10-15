@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import type { Client, Dashboard, Page, Project, Session, Task } from '@rafnexa/shared';
+import type { Client, Dashboard, Member, Page, Project, Session, Task } from '@rafnexa/shared';
 import { requestLocalDemo as request } from './local-demo';
 import { demoStorageKey } from './demo-config';
 
@@ -92,6 +92,45 @@ describe('persistent portfolio workspace', () => {
     await expect(request('/auth/register', { method: 'POST', body: {} })).rejects.toMatchObject({
       code: 'LOCAL_DEMO_ONLY',
     });
+  });
+  it('unassigns a new viewer’s active tasks and rejects stale or unauthorized reassignment', async () => {
+    const members = await request<Member[]>('/members');
+    const member = members.find((item) => item.name === 'Maya Chen')!;
+    const project = await request<Project>('/projects', { method: 'POST', body: input });
+    const task = await request<Task>('/tasks', {
+      method: 'POST',
+      body: {
+        title: 'Review ownership',
+        projectId: project.id,
+        assigneeId: member.id,
+        status: 'in_progress',
+        priority: 'medium',
+        dueDate: null,
+      },
+    });
+    await request(`/members/${member.id}`, { method: 'PATCH', body: { role: 'viewer' } });
+    const saved = (await request<Task[]>(`/projects/${project.id}/tasks`))[0]!;
+    expect(saved).toMatchObject({
+      assigneeId: null,
+      assigneeName: null,
+      version: task.version + 1,
+    });
+    expect((await request<Member[]>('/members')).find((item) => item.id === member.id)?.role).toBe(
+      'viewer',
+    );
+    await expect(
+      request(`/tasks/${task.id}`, {
+        method: 'PATCH',
+        body: { version: task.version, title: 'An older edit' },
+      }),
+    ).rejects.toMatchObject({ code: 'VERSION_CONFLICT' });
+    await expect(
+      request(`/tasks/${task.id}`, {
+        method: 'PATCH',
+        body: { version: saved.version, assigneeId: member.id },
+      }),
+    ).rejects.toMatchObject({ status: 422 });
+    expect((await request<Task[]>(`/projects/${project.id}/tasks`))[0]?.assigneeId).toBeNull();
   });
   it('preserves unreadable data until an explicit reset', async () => {
     localStorage.setItem(demoStorageKey, '{broken');

@@ -76,6 +76,22 @@ test('opens directly without a backend and has accessible core screens', async (
   ).toEqual([]);
   expect(errors).toEqual([]);
   expect(apiRequests).toEqual([]);
+  for (const name of ['Projects', 'Clients', 'Team']) {
+    await navigate(page, name);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByText('Loading clients…')).toHaveCount(0);
+    await expect(page.getByText('Loading team…')).toHaveCount(0);
+    await settleAnimations(page);
+    expect(
+      (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
+        .violations,
+    ).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  expect(errors).toEqual([]);
+  expect(apiRequests).toEqual([]);
 });
 test('persists projects and task moves through deep-link reloads', async ({ page }, info) => {
   await open(page);
@@ -139,4 +155,85 @@ test('recovers unreadable saved data through an explicit reset', async ({ page }
   await activate(page.getByRole('button', { name: 'Reset demo', exact: true }));
   await activate(page.getByRole('dialog').getByRole('button', { name: 'Reset demo', exact: true }));
   await expect(page.getByRole('heading', { name: 'A clear view, Demo.' })).toBeVisible();
+});
+
+test('recovers an open edit after another tab saves a newer task version', async ({
+  page,
+  context,
+}) => {
+  await open(page);
+  await navigate(page, 'Task board');
+  await activate(page.getByRole('button', { name: 'Edit Define account flows', exact: true }));
+  await page.getByRole('textbox', { name: 'Task title', exact: true }).fill('My unsaved draft');
+  const other = await context.newPage();
+  try {
+    await other.goto(page.url());
+    const move = other.getByRole('combobox', { name: 'Move Define account flows', exact: true });
+    await expect(move).toBeVisible();
+    await move.selectOption('in_progress');
+    await expect(move).toHaveValue('in_progress');
+    await activate(page.getByRole('button', { name: 'Save task', exact: true }));
+    await expect(page.getByRole('alert')).toContainText('This task changed');
+    await expect(page.getByRole('textbox', { name: 'Task title', exact: true })).toHaveValue(
+      'My unsaved draft',
+    );
+    await expect(page.getByRole('button', { name: 'Save task', exact: true })).toBeDisabled();
+    await activate(page.getByRole('button', { name: 'Load latest task', exact: true }));
+    await expect(page.getByRole('textbox', { name: 'Task title', exact: true })).toBeFocused();
+    await expect(page.getByRole('textbox', { name: 'Task title', exact: true })).toHaveValue(
+      'Define account flows',
+    );
+    await expect(page.getByRole('combobox', { name: 'Task status', exact: true })).toHaveValue(
+      'in_progress',
+    );
+    await page
+      .getByRole('textbox', { name: 'Task title', exact: true })
+      .fill('Reviewed shared version');
+    await activate(page.getByRole('button', { name: 'Save task', exact: true }));
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await other.reload();
+    await expect(
+      other.getByRole('combobox', { name: 'Move Reviewed shared version', exact: true }),
+    ).toHaveValue('in_progress');
+  } finally {
+    await other.close();
+  }
+});
+
+test('persists a confirmed viewer role and unassigns the member’s tasks', async ({ page }) => {
+  await open(page);
+  await navigate(page, 'Team');
+  const role = page.getByRole('combobox', { name: 'Role for Maya Chen', exact: true });
+  await role.selectOption('viewer');
+  await expect(page.getByRole('dialog')).toContainText('Their active tasks will be unassigned.');
+  await activate(page.getByRole('button', { name: 'Change role', exact: true }));
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(role).toHaveValue('viewer');
+  await page.reload();
+  await expect(role).toHaveValue('viewer');
+  await navigate(page, 'Task board');
+  await activate(
+    page.getByRole('button', { name: 'Edit Build workspace navigation', exact: true }),
+  );
+  await expect(page.getByRole('combobox', { name: 'Assignee', exact: true })).toHaveValue('');
+  await expect(page.getByRole('option', { name: 'Maya Chen', exact: true })).toHaveCount(0);
+});
+
+test('offers recovery from an unavailable project link without creating orphaned tasks', async ({
+  page,
+}) => {
+  await page.goto('./#/board?project=unavailable-project');
+  await expect(
+    page.getByRole('heading', { name: 'This project is unavailable', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'New task', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Explore projects', exact: true })).toBeVisible();
+  await page
+    .getByRole('combobox', { name: 'Board project' })
+    .selectOption({ label: 'Customer portal' });
+  await expect(
+    page.getByRole('button', { name: 'Edit Define account flows', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'New task', exact: true })).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
 });

@@ -541,20 +541,16 @@ function execute(path: string, options: RequestOptions): unknown {
     if (record.id === state.userId || record.role === 'owner')
       throw new ApiError(403, 'FORBIDDEN', 'The demo owner role cannot be changed.');
     const input = validate(memberUpdateSchema, options.body);
-    if (
-      input.role === 'viewer' &&
-      state.tasks.some(
-        (t) =>
-          !t.archived &&
-          t.assigneeId === record.id &&
-          !state.projects.find((p) => p.id === t.projectId)?.archived,
-      )
-    )
-      throw new ApiError(
-        409,
-        'MEMBER_ASSIGNED',
-        'Reassign this member’s tasks before changing them to a viewer.',
-      );
+    if (input.role === 'viewer') {
+      const now = new Date().toISOString();
+      for (const task of state.tasks) {
+        if (!task.archived && task.assigneeId === record.id) {
+          task.assigneeId = null;
+          task.version++;
+          task.updatedAt = now;
+        }
+      }
+    }
     record.role = input.role;
     log(state, `Updated ${record.name}’s role`);
     return record;

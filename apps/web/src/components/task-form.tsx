@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
   canManage,
@@ -29,6 +29,8 @@ export function TaskForm({
   const session = useSession();
   const members = useMembers();
   const invalidate = useInvalidateWorkspace();
+  const formElement = useRef<HTMLFormElement>(null);
+  const [version, setVersion] = useState(task?.version);
   const [form, setForm] = useState<TaskInput>({
     projectId,
     title: task?.title ?? '',
@@ -42,7 +44,7 @@ export function TaskForm({
       const { projectId: project, ...fields } = form;
       return api<Task>(task ? `/tasks/${task.id}` : '/tasks', {
         method: task ? 'PATCH' : 'POST',
-        body: task ? { ...fields, version: task.version } : { ...fields, projectId: project },
+        body: task ? { ...fields, version } : { ...fields, projectId: project },
         csrfToken: session.csrfToken,
       });
     },
@@ -50,7 +52,32 @@ export function TaskForm({
       await invalidate();
       onClose();
     },
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === 'VERSION_CONFLICT') return invalidate();
+    },
   });
+  const latest = useMutation({
+    mutationFn: async () => {
+      const tasks = await api<Task[]>(`/projects/${projectId}/tasks`);
+      const current = tasks.find((item) => item.id === task?.id);
+      if (!current) throw new ApiError(404, 'NOT_FOUND', 'This task is no longer available.');
+      return current;
+    },
+    onSuccess: (current) => {
+      setForm({
+        projectId: current.projectId,
+        title: current.title,
+        status: current.status,
+        priority: current.priority,
+        assigneeId: current.assigneeId,
+        dueDate: current.dueDate,
+      });
+      setVersion(current.version);
+      mutation.reset();
+      formElement.current?.querySelector<HTMLInputElement>('input')?.focus();
+    },
+  });
+  const conflict = mutation.error instanceof ApiError && mutation.error.code === 'VERSION_CONFLICT';
   const fields = mutation.error instanceof ApiError ? mutation.error.fields : {};
   function change<K extends keyof TaskInput>(key: K, value: TaskInput[K]) {
     setForm((previous) => ({ ...previous, [key]: value }));
@@ -64,14 +91,15 @@ export function TaskForm({
           : 'A small, specific task is a good place to start.'
       }
       onClose={() => {
-        if (!mutation.isPending) onClose();
+        if (!mutation.isPending && !latest.isPending) onClose();
       }}
     >
       <form
+        ref={formElement}
         className="form-stack"
         onSubmit={(event) => {
           event.preventDefault();
-          mutation.mutate();
+          if (!conflict && !latest.isPending && !mutation.isPending) mutation.mutate();
         }}
       >
         <Input
@@ -142,14 +170,40 @@ export function TaskForm({
           />
         ) : null}
         {mutation.isError ? <ErrorNotice error={mutation.error} /> : null}
+        {conflict ? (
+          <div className="form-stack">
+            <p className="field-hint">
+              Your edits are still here. Load the latest saved version to review it before trying
+              again. This replaces your unsaved edits.
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              loading={latest.isPending}
+              onClick={() => latest.mutate()}
+            >
+              Load latest task
+            </Button>
+          </div>
+        ) : latest.isSuccess ? (
+          <p className="field-hint" role="status">
+            Latest version loaded. Review the fields before saving.
+          </p>
+        ) : null}
+        {latest.isError ? <ErrorNotice error={latest.error} /> : null}
         <div className="modal-actions">
-          <Button type="button" variant="secondary" disabled={mutation.isPending} onClick={onClose}>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={mutation.isPending || latest.isPending}
+            onClick={onClose}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             loading={mutation.isPending}
-            disabled={members.isPending || members.isError}
+            disabled={members.isPending || members.isError || conflict || latest.isPending}
           >
             {task ? 'Save task' : 'Create task'}
           </Button>

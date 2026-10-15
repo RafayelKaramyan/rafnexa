@@ -23,7 +23,9 @@ export default function Board() {
   const session = useSession();
   const projects = useProjectOptions();
   const [params, setParams] = useSearchParams();
-  const projectId = params.get('project') ?? projects.data?.[0]?.id ?? '';
+  const projectId = params.get('project') || projects.data?.[0]?.id || '';
+  const selected = projects.data?.find((project) => project.id === projectId);
+  const unavailable = projects.isSuccess && Boolean(projectId) && !selected;
   const [editing, setEditing] = useState<Task | true | null>(null);
   const [creatingStatus, setCreatingStatus] = useState<TaskStatus>('todo');
   const [archiving, setArchiving] = useState<Task | null>(null);
@@ -36,7 +38,7 @@ export default function Board() {
   const query = useQuery({
     queryKey: key,
     queryFn: ({ signal }) => api<Task[]>(`/projects/${projectId}/tasks`, { signal }),
-    enabled: Boolean(projectId),
+    enabled: Boolean(selected),
     refetchInterval: 15_000,
   });
   const move = useMutation({
@@ -73,7 +75,6 @@ export default function Board() {
     )
       move.mutate({ task, status });
   }
-  const selected = projects.data?.find((project) => project.id === projectId);
   return (
     <>
       <PageHeading
@@ -81,7 +82,7 @@ export default function Board() {
         title="The next move is clear"
         description="Small steps, shared context, visible progress."
         action={
-          canManage(session.workspace.role) && projectId ? (
+          canManage(session.workspace.role) && selected ? (
             <Button
               onClick={() => {
                 setCreatingStatus('todo');
@@ -110,6 +111,7 @@ export default function Board() {
               move.reset();
             }}
           >
+            {unavailable ? <option value={projectId}>Unavailable project</option> : null}
             {projects.data?.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.name}
@@ -142,8 +144,18 @@ export default function Board() {
           }}
         />
       ) : null}
-      {projects.isPending || Boolean(projectId && query.isPending) ? (
+      {projects.isError ? null : projects.isPending || Boolean(selected && query.isPending) ? (
         <Loading label="Loading board…" />
+      ) : unavailable ? (
+        <EmptyState
+          title="This project is unavailable"
+          description="It may have been archived. Choose another project above or explore your projects."
+          action={
+            <Link className="button button-secondary" to="/projects">
+              Explore projects
+            </Link>
+          }
+        />
       ) : !projectId ? (
         <EmptyState
           title="A board begins with a project"
