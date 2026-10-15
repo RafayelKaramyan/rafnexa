@@ -15,9 +15,9 @@ interface design and frontend/full-stack engineering. The public presentation
 uses GitHub Pages and opens directly into an editable workspace.
 
 Published on GitHub Pages and verified on 15 October 2026.
-[Passing CI](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38776194748)
-includes 23 unit/component tests, 17 MySQL integration tests, 18 server browser
-scenarios and 12 Pages browser scenarios. See the [validation record](docs/validation.md).
+[Passing CI](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38779591876)
+includes 24 unit/component tests, 17 MySQL integration tests, 18 server browser
+scenarios and 21 Pages browser scenarios. See the [validation record](docs/validation.md).
 
 ## Two ways to explore
 
@@ -36,8 +36,10 @@ boundary. See the server application for the authorization implementation.
 The Pages build uses hash routing so project and board links survive reloads
 without server rewrites. A versioned, validated storage adapter reuses the shared
 contracts, computes dashboard metrics from saved records, and rejects stale task
-updates. Web Locks serialize updates between tabs when supported; storage events
-refresh other tabs. Unreadable data is retained until an explicit reset, and
+updates. Conflicting task edits keep the draft visible and offer an explicit
+Load latest task action before saving again. Missing or archived project links
+provide a way back to available work. Web Locks serialize updates between tabs
+when supported; storage events refresh other tabs. Unreadable data is retained until an explicit reset, and
 failed storage writes surface errors instead of claiming success.
 
 ```bash

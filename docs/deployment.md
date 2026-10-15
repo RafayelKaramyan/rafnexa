@@ -21,7 +21,7 @@ reset confirmation and recovery from invalid saved data, without an API server.
 
 The local demo is a portfolio presentation. Online accounts, cross-device sharing,
 real invitations and server authorization belong to the separate server mode.
-The [successful deployment](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38776593518)
+The [successful deployment](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38780077986)
 published the tested application. Live checks confirmed project creation and a
 task moved to Done persisted after a page reload.
 
