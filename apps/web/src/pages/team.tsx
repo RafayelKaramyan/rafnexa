@@ -17,6 +17,7 @@ import { api, ApiError } from '../lib/api';
 import { useSession } from '../lib/session-context';
 import { useMembers, useInvalidateWorkspace } from '../lib/use-workspace-data';
 import { formatDate } from '../lib/format';
+import { isLocalDemo } from '../lib/demo-config';
 
 function InviteForm({ onClose }: { onClose: () => void }) {
   const session = useSession();
@@ -190,7 +191,9 @@ export default function Team() {
       </div>
       {session.workspace.isDemo ? (
         <p className="demo-team-note">
-          The people in this demo are fictional. Create your own workspace to invite real teammates.
+          {isLocalDemo
+            ? 'Fictional teammates. Role changes apply only to this browser demo.'
+            : 'The people in this demo are fictional. Create your own workspace to invite real teammates.'}
         </p>
       ) : null}
       <section className="panel">

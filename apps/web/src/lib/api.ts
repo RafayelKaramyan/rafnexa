@@ -1,23 +1,21 @@
 import type { ApiErrorBody } from '@rafnexa/shared';
+import { ApiError } from './api-error';
+import { isLocalDemo } from './demo-config';
+export { ApiError } from './api-error';
 
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly code: string,
-    message: string,
-    public readonly fields: Record<string, string> = {},
-    public readonly requestId: string | undefined = undefined,
-  ) {
-    super(message);
-  }
-}
-type RequestOptions = {
+export type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   csrfToken?: string;
   signal?: AbortSignal;
 };
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  if (isLocalDemo) {
+    options.signal?.throwIfAborted();
+    const { requestLocalDemo } = await import('./local-demo');
+    options.signal?.throwIfAborted();
+    return requestLocalDemo<T>(path, options);
+  }
   const response = await fetch(`/api${path}`, {
     method: options.method ?? 'GET',
     credentials: 'same-origin',

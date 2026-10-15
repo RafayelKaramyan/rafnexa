@@ -1,5 +1,30 @@
 # Deployment
 
+## Public portfolio demo: GitHub Pages
+
+The public showcase is a static React application, built with `npm run build:pages`.
+It opens directly into the sample workspace and persists edits in browser storage.
+It does not need Render, a database account, secrets or an authentication provider.
+
+In repository Settings → Pages, choose GitHub Actions as the publishing source.
+`.github/workflows/pages.yml` deploys `apps/web/dist` only after a successful
+`Continuous integration` run for a push to `main`. Vite's `pages` mode sets
+`/rafnexa/` as the asset base and enables the browser storage adapter. Hash routing
+keeps reloads and shared project/board routes compatible with static hosting.
+
+CI tests the server build and the static Pages build separately. The Pages browser
+suite verifies direct entry, persistence, visitor isolation, accessible screens,
+reset confirmation and recovery from invalid saved data, without an API server.
+
+The local demo is a portfolio presentation. Online accounts, cross-device sharing,
+real invitations and server authorization belong to the separate server mode.
+The public live URL is recorded only after deployment verification.
+
+## Optional server deployment
+
+These instructions describe the existing Node/MySQL application. They are not
+required to run or review the portfolio demo.
+
 Run one Node service and an external MySQL database. `Dockerfile` provides a
 non-root runtime image; `render.yaml` describes a free service. Configuration files
 are not evidence of a successful live deployment.

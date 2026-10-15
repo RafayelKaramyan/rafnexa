@@ -18,6 +18,8 @@ import { Avatar, Brand, ErrorNotice } from './ui';
 import { useAuth, useSession } from '../lib/session-context';
 import { formatDate } from '../lib/format';
 import { useMediaQuery } from '../lib/use-media-query';
+import { isLocalDemo } from '../lib/demo-config';
+import { DemoReset } from './demo-reset';
 
 const navigation = [
   { to: '/overview', label: 'Overview', icon: LayoutDashboard },
@@ -183,14 +185,16 @@ export function Layout() {
             <strong>{session.user.name}</strong>
             <span>{roleLabels[session.workspace.role]}</span>
           </div>
-          <button
-            className="icon-button"
-            aria-label="Sign out"
-            disabled={logout.isPending}
-            onClick={() => logout.mutate()}
-          >
-            <LogOut size={17} />
-          </button>
+          {!isLocalDemo ? (
+            <button
+              className="icon-button"
+              aria-label="Sign out"
+              disabled={logout.isPending}
+              onClick={() => logout.mutate()}
+            >
+              <LogOut size={17} />
+            </button>
+          ) : null}
         </div>
       </aside>
       <div ref={mainShell} className="main-shell">
@@ -221,10 +225,18 @@ export function Layout() {
         {session.workspace.isDemo ? (
           <div className="demo-banner">
             <span className="demo-badge">DEMO</span>
-            <span>This is your isolated workspace. Sample data expires after 24 hours.</span>
-            <button onClick={() => ownWorkspace.mutate()} disabled={ownWorkspace.isPending}>
-              Create your own workspace <ArrowUpRight size={13} />
-            </button>
+            <span>
+              {isLocalDemo
+                ? 'Interactive demo. Changes are saved in this browser.'
+                : 'This is your isolated workspace. Sample data expires after 24 hours.'}
+            </span>
+            {isLocalDemo ? (
+              <DemoReset />
+            ) : (
+              <button onClick={() => ownWorkspace.mutate()} disabled={ownWorkspace.isPending}>
+                Create your own workspace <ArrowUpRight size={13} />
+              </button>
+            )}
           </div>
         ) : null}
         <main id="main-content" className="main-content">

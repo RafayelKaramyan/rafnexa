@@ -1,5 +1,21 @@
 # Validation record
 
+## GitHub Pages portfolio mode — 15 October 2026
+
+Executed locally: both production and Pages builds, strict application/test type
+checks, lint, formatting and 23 unit/component tests. Six added tests cover browser
+data persistence, shared input validation, stale edits, metrics after task moves,
+reference constraints, explicit recovery and failed-storage error handling.
+
+The new Pages browser suite and live deployment are pending CI. It covers direct
+entry without API requests, accessible overview/board screens, project/task
+persistence after deep-link reloads, visitor isolation, reset confirmation and
+recovery from unreadable saved data in Chromium, Firefox and mobile Chromium.
+
+The previous release evidence below applies to the server implementation before
+this additional presentation mode. It is not a claim that the new Pages suite has
+already passed.
+
 ## Verified release code
 
 Code commit: `d4b8f57ae6fb588d458612f3a096d2c150970514`.

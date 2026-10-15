@@ -5,14 +5,44 @@ and team ownership in a quiet, focused interface.
 
 ## Release status
 
-The working implementation is merged into `main`. Build, test-code type checking,
-lint, formatting, 17 unit/component tests, 17 MySQL integration tests and 18 browser
-scenarios passed in [GitHub Actions](https://github.com/RafayelKaramyan/rafnexa/actions/runs/38474468301).
+An independent portfolio project by **Rafayel Karamyan**, created to demonstrate
+interface design and frontend/full-stack engineering. The public presentation
+uses GitHub Pages and opens directly into an editable workspace.
 
-Public hosting setup is pending. A live URL will be added only after deployment
-and verification.
+Pages publication is in progress. The live URL will be recorded after a successful
+deployment and verification.
 
-## Implemented features
+## Two ways to explore
+
+| Mode               | Behavior                                                                                                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Portfolio demo     | No account or backend setup. Projects, clients, task edits, progress and activity persist in the current browser. Sample teammates are fictional. Reset restores the original data after confirmation. |
+| Server application | The same interface backed by Node.js, Express and MySQL, with real account authentication, sessions, workspace isolation and server-enforced roles. Run locally using the instructions below.          |
+
+The public demo does not collect passwords, simulate online registration or send
+invitations. Browser data is separate for each visitor and does not synchronize
+between devices. Its role controls demonstrate interface behavior, not a security
+boundary. See the server application for the authorization implementation.
+
+## Portfolio demo
+
+The Pages build uses hash routing so project and board links survive reloads
+without server rewrites. A versioned, validated storage adapter reuses the shared
+contracts, computes dashboard metrics from saved records, and rejects stale task
+updates. Web Locks serialize updates between tabs when supported; storage events
+refresh other tabs. Unreadable data is retained until an explicit reset, and
+failed storage writes surface errors instead of claiming success.
+
+```bash
+npm ci
+npm run build:pages
+npx vite preview --config apps/web/vite.config.ts --mode pages
+```
+
+Open the preview's `/rafnexa/` path. No MySQL service is needed for this mode.
+The GitHub Pages workflow publishes only after the complete CI workflow succeeds.
+
+## Server application features
 
 - Account registration and sign-in with database-backed sessions.
 - An isolated, editable demo workspace with fictional data and a 24-hour lifetime.
@@ -89,7 +119,7 @@ Integration tests clear data in the dedicated test database. Never use a databas
 containing real data. Browser tests use the built Node service, real cookies and
 SQL persistence. CI provisions MySQL 8.4 as a service.
 
-## Security and operational scope
+## Server security and operational scope
 
 Passwords use salted scrypt. Session/invitation tokens are stored as SHA-256 hashes.
 Cookies are HttpOnly, SameSite=Lax and Secure in production. Mutations require the

@@ -3,6 +3,7 @@ import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-quer
 import type { Session } from '@rafnexa/shared';
 import { api, ApiError } from './api';
 import { AuthContext } from './session-context';
+import { demoStorageKey, isLocalDemo } from './demo-config';
 
 function clearWorkspaceQueries(client: QueryClient) {
   void client.cancelQueries();
@@ -31,6 +32,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener('rafnexa:session-expired', expired);
     return () => window.removeEventListener('rafnexa:session-expired', expired);
+  }, [client]);
+  useEffect(() => {
+    if (!isLocalDemo) return;
+    const refresh = (event: StorageEvent) => {
+      if (event.key === demoStorageKey || event.key === null) {
+        void client.invalidateQueries();
+      }
+    };
+    window.addEventListener('storage', refresh);
+    return () => window.removeEventListener('storage', refresh);
   }, [client]);
   function establish(session: Session) {
     clearWorkspaceQueries(client);

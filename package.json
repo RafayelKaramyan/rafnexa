@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "npm run build -w @rafnexa/shared && concurrently -k \"node --watch --import tsx apps/api/src/index.ts\" \"vite --config apps/web/vite.config.ts\"",
     "build": "npm run build -w @rafnexa/shared && npm run build -w @rafnexa/api && npm run build -w @rafnexa/web",
+    "build:pages": "npm run build -w @rafnexa/shared && npm run build:pages -w @rafnexa/web",
     "start": "node apps/api/dist/index.js",
     "db:migrate": "node --import tsx apps/api/src/migrate.ts",
     "check": "npm run build && npm run typecheck:tests && npm run lint && npm run format:check && npm test",
@@ -24,7 +25,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run --exclude '**/integration.test.ts'",
     "test:integration": "vitest run apps/api/src/integration.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:pages": "playwright test --config playwright.pages.config.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",

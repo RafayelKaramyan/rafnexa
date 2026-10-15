@@ -4,6 +4,8 @@ import { Layout } from './components/layout';
 import { ErrorNotice, Loading } from './components/ui';
 import { useAuth } from './lib/session-context';
 import { AuthPage, InvitePage } from './pages/auth';
+import { isLocalDemo } from './lib/demo-config';
+import { DemoReset } from './components/demo-reset';
 
 const Overview = lazy(() => import('./pages/overview'));
 const Projects = lazy(() => import('./pages/projects'));
@@ -18,6 +20,7 @@ function Protected() {
     return (
       <main className="fatal-error">
         <ErrorNotice error={auth.error} retry={auth.retry} />
+        {isLocalDemo ? <DemoReset /> : null}
       </main>
     );
   return auth.session ? <Layout /> : <Navigate to="/login" replace />;
@@ -26,9 +29,18 @@ export function App() {
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
-        <Route path="/login" element={<AuthPage />} />
-        <Route path="/register" element={<AuthPage register />} />
-        <Route path="/invite" element={<InvitePage />} />
+        <Route
+          path="/login"
+          element={isLocalDemo ? <Navigate to="/overview" replace /> : <AuthPage />}
+        />
+        <Route
+          path="/register"
+          element={isLocalDemo ? <Navigate to="/overview" replace /> : <AuthPage register />}
+        />
+        <Route
+          path="/invite"
+          element={isLocalDemo ? <Navigate to="/overview" replace /> : <InvitePage />}
+        />
         <Route element={<Protected />}>
           <Route path="/overview" element={<Overview />} />
           <Route path="/projects" element={<Projects />} />

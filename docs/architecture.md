@@ -1,5 +1,25 @@
 # Architecture and decisions
 
+## Portfolio presentation mode
+
+The `pages` Vite build selects the browser storage transport and hash router.
+Normal builds retain the HTTP API and browser-history router. Shared Zod contracts
+validate both transports; React routes, forms and query invalidation are reused.
+
+`apps/web/src/lib/local-demo.ts` owns a versioned browser document. Each operation
+reads the latest snapshot, validates inputs and references, applies changes, then
+persists before reporting success. Task versions reject stale writes. Dashboard
+progress, throughput and activity are derived from saved records. Web Locks
+serialize transactions between supported tabs, and storage events invalidate
+queries in other tabs. Visitors on different browsers do not share data.
+
+There are no passwords or online sessions in this mode. The session-shaped context
+identifies a fictional demo owner for interface reuse; it is not authentication.
+The public UI omits sign-in, registration, sign-out and real invitation controls.
+Storage errors are surfaced and unreadable data is preserved for an explicit reset.
+
+The following sections describe the separate Node/MySQL server application.
+
 ## One origin and explicit boundaries
 
 Express serves the built React app and `/api`; development uses Vite's proxy.

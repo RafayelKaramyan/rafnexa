@@ -3,4 +3,6 @@ dist
 coverage
 package-lock.json
 playwright-report
+playwright-pages-report
 test-results
+test-results-pages

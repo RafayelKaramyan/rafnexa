@@ -2,7 +2,9 @@ node_modules/
 dist/
 coverage/
 test-results/
+test-results-pages/
 playwright-report/
+playwright-pages-report/
 *.tsbuildinfo
 .env
 .env.*
